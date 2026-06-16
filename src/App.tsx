@@ -637,6 +637,7 @@ function SettingsView({
   onToast: (value: string) => void;
 }) {
   const fonts = ["Inter", "Satoshi", "Manrope", "DM Sans", "Poppins", "Outfit", "Montserrat"];
+  const [providerStatus, setProviderStatus] = useState<Record<string, string>>({});
 
   function updatePreference<K extends keyof UserPreferences>(key: K, value: UserPreferences[K]) {
     setPreferences((current) => ({ ...current, [key]: value }));
@@ -644,6 +645,11 @@ function SettingsView({
 
   function updateProvider(index: number, updates: Partial<AIProviderSetting>) {
     setProviders((current) => current.map((provider, itemIndex) => (itemIndex === index ? { ...provider, ...updates } : provider)));
+  }
+
+  function flashStatus(provider: string, message: string) {
+    setProviderStatus((current) => ({ ...current, [provider]: message }));
+    onToast(message);
   }
 
   return (
@@ -681,9 +687,17 @@ function SettingsView({
           <AIProviderForm
             key={provider.provider}
             provider={provider}
+            status={providerStatus[provider.provider]}
             onUpdate={(updates) => updateProvider(index, updates)}
-            onDefault={() => setProviders((current) => current.map((item) => ({ ...item, isDefault: item.provider === provider.provider })))}
-            onTest={() => onToast(`${provider.provider} mock connection checked. Add a server proxy before using real secrets.`)}
+            onDefault={() => {
+              setProviders((current) => current.map((item) => ({ ...item, isDefault: item.provider === provider.provider })));
+              flashStatus(provider.provider, `${provider.provider} is now the default provider.`);
+            }}
+            onSave={() => {
+              updateProvider(index, { enabled: true });
+              flashStatus(provider.provider, `${provider.provider} settings saved locally.`);
+            }}
+            onTest={() => flashStatus(provider.provider, `${provider.provider} mock connection checked. Add a server proxy before using real secrets.`)}
           />
         ))}
       </section>
@@ -693,7 +707,7 @@ function SettingsView({
 
 function Toggle({ label, value, onChange, icon: Icon }: { label: string; value: boolean; onChange: (value: boolean) => void; icon: React.ComponentType<{ size?: number }> }) {
   return (
-    <button className={value ? "toggle active" : "toggle"} onClick={() => onChange(!value)}>
+    <button type="button" className={value ? "toggle active" : "toggle"} onClick={() => onChange(!value)} aria-pressed={value}>
       <Icon size={17} />
       <span>{label}</span>
       <b>{value ? "On" : "Off"}</b>
@@ -703,13 +717,17 @@ function Toggle({ label, value, onChange, icon: Icon }: { label: string; value: 
 
 function AIProviderForm({
   provider,
+  status,
   onUpdate,
   onDefault,
+  onSave,
   onTest
 }: {
   provider: AIProviderSetting;
+  status?: string;
   onUpdate: (updates: Partial<AIProviderSetting>) => void;
   onDefault: () => void;
+  onSave: () => void;
   onTest: () => void;
 }) {
   return (
@@ -722,10 +740,11 @@ function AIProviderForm({
       <input value={provider.baseUrl ?? ""} placeholder="Optional base URL" onChange={(event) => onUpdate({ baseUrl: event.target.value })} />
       <input value={provider.model} placeholder="Model" onChange={(event) => onUpdate({ model: event.target.value })} />
       <div className="provider-actions">
-        <button onClick={onTest}>Test</button>
-        <button onClick={() => onUpdate({ enabled: true })}>Save</button>
-        <button className={provider.isDefault ? "active" : ""} onClick={onDefault}>Default</button>
+        <button type="button" onClick={onTest}>Test</button>
+        <button type="button" onClick={onSave}>Save</button>
+        <button type="button" className={provider.isDefault ? "active" : ""} onClick={onDefault}>{provider.isDefault ? "Default" : "Set default"}</button>
       </div>
+      <p className="provider-status">{status ?? (provider.isDefault ? "Default provider" : "Ready")}</p>
     </article>
   );
 }
