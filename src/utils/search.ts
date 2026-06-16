@@ -30,7 +30,10 @@ export const promptSuggestions = [
 
 export function analyzePrompt(prompt: string, selectedCategories: Category[]): SearchAnalysis {
   const normalized = prompt.toLowerCase();
+  const matchedHotel = hotels.find((hotel) => normalized.includes(hotel.name.toLowerCase().split(" ")[0]));
+  const asksPrice = /\b(how much|price|cost|rate|rates|night|per night|magkano)\b/.test(normalized);
   const destination =
+    (matchedHotel ? destinations.find((item) => item.id === matchedHotel.destinationId) : undefined) ??
     destinations.find((item) => normalized.includes(item.name.toLowerCase())) ??
     destinations.find((item) => item.bestFor.some((term) => normalized.includes(term.toLowerCase().split(" ")[0]))) ??
     destinations[0];
@@ -39,7 +42,7 @@ export function analyzePrompt(prompt: string, selectedCategories: Category[]): S
     categoryTerms[category].some((term) => normalized.includes(term))
   );
 
-  const categories = Array.from(new Set([...selectedCategories, ...inferredCategories]));
+  const categories = Array.from(new Set([...selectedCategories, ...inferredCategories, ...(matchedHotel ? (["Hotels", "Accommodations"] as Category[]) : [])]));
   const activeCategories = categories.length > 0 ? categories : (["Hotels", "Transportation", "Foods", "Markets"] as Category[]);
   const budget = normalized.includes("cheap") || normalized.includes("budget")
     ? "Budget"
@@ -60,6 +63,15 @@ export function analyzePrompt(prompt: string, selectedCategories: Category[]): S
   const byDestination = <T extends { destinationId: string }>(items: T[]) =>
     items.filter((item) => item.destinationId === destination.id || (destination.id === "boracay" && item.destinationId === "boracay"));
 
+  const prioritizeHotel = <T extends { name: string }>(items: T[]) => {
+    if (!matchedHotel) return items;
+    return [...items].sort((a, b) => {
+      const aMatch = a.name === matchedHotel.name ? 0 : 1;
+      const bMatch = b.name === matchedHotel.name ? 0 : 1;
+      return aMatch - bMatch;
+    });
+  };
+
   const resultDeals = deals.filter((deal) => {
     if (activeCategories.includes("Theme parks") && deal.category === "Theme parks") return true;
     if (activeCategories.includes("Transportation") && deal.category === "Transportation") return true;
@@ -75,8 +87,13 @@ export function analyzePrompt(prompt: string, selectedCategories: Category[]): S
     budget,
     duration,
     styleTags: Array.from(new Set([...styleTags, ...destination.tags])).slice(0, 5),
-    summary: `LuzonLoop matched your prompt to ${destination.name}, with ${activeCategories.map((item) => item.toLowerCase()).join(", ")} modules and a ${budget.toLowerCase()} planning style.`,
-    hotels: byDestination(hotels).slice(0, 3),
+    summary: matchedHotel
+      ? `LuzonLoop matched your prompt to ${matchedHotel.name} in ${matchedHotel.area}, with price-focused hotel details and nearby Manila travel modules.`
+      : `LuzonLoop matched your prompt to ${destination.name}, with ${activeCategories.map((item) => item.toLowerCase()).join(", ")} modules and a ${budget.toLowerCase()} planning style.`,
+    directAnswer: matchedHotel && asksPrice
+      ? `${matchedHotel.name} is estimated at ${matchedHotel.priceRange}. Rates change by date, room type, taxes, promos, and availability, so use this as a planning estimate and check the live booking page before paying.`
+      : undefined,
+    hotels: prioritizeHotel(byDestination(hotels)).slice(0, 3),
     accommodations: byDestination(accommodations).slice(0, 2),
     transport: byDestination(transport).concat(transport.filter((item) => prompt.toLowerCase().includes("boracay") && item.destinationId === "boracay")).slice(0, 3),
     attractions: byDestination(attractions).slice(0, 3),

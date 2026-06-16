@@ -541,16 +541,20 @@ function AIAnswerPanel({ analysis }: { analysis: SearchAnalysis }) {
         <h3><Sparkles size={19} />AI answer</h3>
         <span>Structured response</span>
       </div>
-      <p>
-        For your request, start with <strong>{analysis.destination.name}</strong>. Stay around{" "}
-        <strong>{primaryStay?.area ?? analysis.destination.region}</strong>
-        {primaryStay ? ` at ${primaryStay.name}` : ""}, then use{" "}
-        <strong>{primaryTransport?.mode.toLowerCase() ?? "local transport"}</strong>
-        {primaryTransport ? ` via ${primaryTransport.route}` : ""}. Budget around{" "}
-        <strong>{analysis.budgetEstimate}</strong> for a {analysis.duration.toLowerCase()} plan, then add{" "}
-        <strong>{primaryFood?.name ?? "a local food stop"}</strong>
-        {primaryDeal ? ` and check the ${primaryDeal.source} deal "${primaryDeal.title}" before booking.` : "."}
-      </p>
+      {analysis.directAnswer ? (
+        <p>{analysis.directAnswer}</p>
+      ) : (
+        <p>
+          For your request, start with <strong>{analysis.destination.name}</strong>. Stay around{" "}
+          <strong>{primaryStay?.area ?? analysis.destination.region}</strong>
+          {primaryStay ? ` at ${primaryStay.name}` : ""}, then use{" "}
+          <strong>{primaryTransport?.mode.toLowerCase() ?? "local transport"}</strong>
+          {primaryTransport ? ` via ${primaryTransport.route}` : ""}. Budget around{" "}
+          <strong>{analysis.budgetEstimate}</strong> for a {analysis.duration.toLowerCase()} plan, then add{" "}
+          <strong>{primaryFood?.name ?? "a local food stop"}</strong>
+          {primaryDeal ? ` and check the ${primaryDeal.source} deal "${primaryDeal.title}" before booking.` : "."}
+        </p>
+      )}
       <div className="answer-actions">
         {analysis.categories.map((category) => <span key={category}>{category}</span>)}
       </div>

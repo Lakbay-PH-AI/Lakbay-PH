@@ -65,6 +65,7 @@ export const hotels: Hotel[] = [
   { id: "h3", destinationId: "cebu", name: "Cebu Heritage House", area: "Downtown Cebu", priceRange: "PHP 2,800-5,000/night", rating: 4.4, tags: ["Foodie", "Best value"], amenities: ["Market access", "Cafe", "Late check-in"] },
   { id: "h4", destinationId: "baguio", name: "Pineview Stay", area: "Session Road", priceRange: "PHP 2,200-4,200/night", rating: 4.3, tags: ["Budget", "Family-friendly"], amenities: ["Heated shower", "Walkable", "Parking"] },
   { id: "h5", destinationId: "boracay", name: "Station Two Pearl", area: "White Beach", priceRange: "PHP 6,000-10,500/night", rating: 4.6, tags: ["Romantic", "Family-friendly"], amenities: ["Beachfront", "Airport transfer", "Pool"] },
+  { id: "h7", destinationId: "manila", name: "Okada Manila", area: "Entertainment City, Parañaque", priceRange: "PHP 12,000-22,000/night estimate", rating: 4.7, tags: ["Luxury", "Family-friendly"], amenities: ["Casino resort", "Pool", "Dining", "Bay-area access"] },
   { id: "h6", destinationId: "manila", name: "Intramuros Modern Inn", area: "Ermita", priceRange: "PHP 3,300-6,200/night", rating: 4.2, tags: ["Best value", "Local favorite"], amenities: ["Heritage walks", "Airport desk", "Rooftop"] }
 ];
 

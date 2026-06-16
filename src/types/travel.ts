@@ -159,6 +159,7 @@ export interface SearchAnalysis {
   duration: string;
   styleTags: TravelTag[];
   summary: string;
+  directAnswer?: string;
   hotels: Hotel[];
   accommodations: Accommodation[];
   transport: TransportOption[];
